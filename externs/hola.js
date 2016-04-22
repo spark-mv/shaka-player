@@ -25,3 +25,5 @@ window.hola_cdn;
 window.hola_cdn.api;
 
 window.hola_cdn.api.new_http_request;
+
+window.hola_cdn.api.shaka_message;
