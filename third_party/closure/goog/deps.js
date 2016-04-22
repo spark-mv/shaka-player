@@ -54,7 +54,7 @@ goog.addDependency('../../../lib/polyfill/patchedmediakeys_nop.js', ['shaka.poly
 goog.addDependency('../../../lib/polyfill/patchedmediakeys_v01b.js', ['shaka.polyfill.PatchedMediaKeys.v01b'], ['shaka.asserts', 'shaka.log', 'shaka.util.EventManager', 'shaka.util.FakeEvent', 'shaka.util.FakeEventTarget', 'shaka.util.PublicPromise', 'shaka.util.Uint8ArrayUtils']);
 goog.addDependency('../../../lib/polyfill/promise.js', ['shaka.polyfill.Promise'], ['shaka.asserts', 'shaka.log']);
 goog.addDependency('../../../lib/polyfill/videoplaybackquality.js', ['shaka.polyfill.VideoPlaybackQuality'], []);
-goog.addDependency('../../../lib/util/ajax_request.js', ['shaka.util.AjaxRequest'], ['goog.Uri', 'shaka.asserts', 'shaka.features', 'shaka.util.Clock', 'shaka.util.ContentDatabaseReader', 'shaka.util.IBandwidthEstimator', 'shaka.util.PublicPromise', 'shaka.util.StringUtils', 'shaka.util.TypedBind', 'shaka.util.Uint8ArrayUtils']);
+goog.addDependency('../../../lib/util/ajax_request.js', ['shaka.util.AjaxRequest'], ['goog.Uri', 'shaka.asserts', 'shaka.features', 'shaka.util.Clock', 'shaka.util.ContentDatabaseReader', 'shaka.util.HolaApi', 'shaka.util.IBandwidthEstimator', 'shaka.util.PublicPromise', 'shaka.util.StringUtils', 'shaka.util.TypedBind', 'shaka.util.Uint8ArrayUtils']);
 goog.addDependency('../../../lib/util/array_utils.js', ['shaka.util.ArrayUtils'], []);
 goog.addDependency('../../../lib/util/clock.js', ['shaka.util.Clock'], []);
 goog.addDependency('../../../lib/util/content_database.js', ['shaka.util.ContentDatabase'], ['shaka.asserts', 'shaka.util.FakeEventTarget', 'shaka.util.PublicPromise', 'shaka.util.TypedBind']);
@@ -70,6 +70,7 @@ goog.addDependency('../../../lib/util/failover_uri.js', ['shaka.util.FailoverUri
 goog.addDependency('../../../lib/util/fake_event.js', ['shaka.util.FakeEvent'], ['shaka.asserts']);
 goog.addDependency('../../../lib/util/fake_event_target.js', ['shaka.util.FakeEventTarget'], ['shaka.asserts', 'shaka.util.MultiMap']);
 goog.addDependency('../../../lib/util/features.js', ['shaka.features'], []);
+goog.addDependency('../../../lib/util/hola_api.js', ['shaka.util.HolaApi'], []);
 goog.addDependency('../../../lib/util/i_bandwidth_estimator.js', ['shaka.util.IBandwidthEstimator'], []);
 goog.addDependency('../../../lib/util/language_utils.js', ['shaka.util.LanguageUtils'], ['shaka.asserts']);
 goog.addDependency('../../../lib/util/license_request.js', ['shaka.util.LicenseRequest'], ['shaka.player.Defaults', 'shaka.util.AjaxRequest', 'shaka.util.FailoverUri']);
