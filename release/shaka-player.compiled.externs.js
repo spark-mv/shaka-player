@@ -6,65 +6,79 @@
 /** @const */
 var shaka = {};
 /** @const */
-shaka.offline = {};
-/** @const */
-shaka.net = {};
+shaka.dash = {};
 /** @const */
 shaka.media = {};
 /** @const */
 shaka.cast = {};
 /** @const */
-shaka.dash = {};
-/** @const */
 shaka.media.TextEngine = {};
 /** @const */
-shaka.media.ManifestParser = {};
-/** @const */
 shaka.util = {};
+/** @const */
+shaka.net = {};
+/** @const */
+shaka.offline = {};
 /** @const */
 shaka.polyfill = {};
 /** @const */
 shaka.abr = {};
+/** @const */
+shaka.media.ManifestParser = {};
 
 /**
- * Creates an InitSegmentReference, which provides the location to an
- * initialization segment.
- * @param {function():!Array.<string>} uris
- *   A function that creates the URIs of the resource containing the segment.
- * @param {number} startByte The offset from the start of the resource to the
- *   start of the segment.
- * @param {?number} endByte The offset from the start of the resource to the
- *   end of the segment, inclusive. null indicates that the segment extends
- *   to the end of the resource.
- * @constructor
- * @struct
+ * An interface to standardize how objects are destroyed.
+ * @interface
  */
-shaka.media.InitSegmentReference = function(uris, startByte, endByte) {};
+shaka.util.IDestroyable = function() {};
 /**
- * Creates a SegmentReference, which provides the start time, end time, and
- * location to a media segment.
- * @param {number} position The segment's position within a particular Period.
- *   The following should hold true between any two SegmentReferences from the
- *   same Period, r1 and r2:
- *   IF r2.position > r1.position THEN
- *     [ (r2.startTime > r1.startTime) OR
- *       (r2.startTime == r1.startTime AND r2.endTime >= r1.endTime) ]
- * @param {number} startTime The segment's start time in seconds, relative to
- *   the start of a particular Period.
- * @param {number} endTime The segment's end time in seconds, relative to
- *   the start of a particular Period. The segment ends the instant before
- *   this time, so |endTime| must be strictly greater than |startTime|.
- * @param {function():!Array.<string>} uris
- *   A function that creates the URIs of the resource containing the segment.
- * @param {number} startByte The offset from the start of the resource to the
- *   start of the segment.
- * @param {?number} endByte The offset from the start of the resource to the
- *   end of the segment, inclusive. null indicates that the segment extends
- *   to the end of the resource.
- * @constructor
- * @struct
+ * Destroys the object, releasing all resources and shutting down all
+ * operations.  Returns a Promise which is resolved when destruction is
+ * complete.  This Promise should never be rejected.
+ * @return {!Promise}
  */
-shaka.media.SegmentReference = function(position, startTime, endTime, uris, startByte, endByte) {};
+shaka.util.IDestroyable.prototype.destroy = function() {};
+/**
+ * A work-alike for EventTarget.  Only DOM elements may be true EventTargets,
+ * but this can be used as a base class to provide event dispatch to non-DOM
+ * classes.  Only FakeEvents should be dispatched.
+ * @struct
+ * @constructor
+ * @implements {EventTarget}
+ */
+shaka.util.FakeEventTarget = function() {};
+/**
+ * These are the listener types defined in the closure extern for EventTarget.
+ * @typedef {EventListener|function(!Event):(boolean|undefined)}
+ */
+shaka.util.FakeEventTarget.ListenerType;
+/**
+ * Add an event listener to this object.
+ * @param {string} type The event type to listen for.
+ * @param {shaka.util.FakeEventTarget.ListenerType} listener The callback or
+ *   listener object to invoke.
+ * @param {boolean=} opt_capturing Ignored.  FakeEventTargets do not have
+ *   parents, so events neither capture nor bubble.
+ * @override
+ */
+shaka.util.FakeEventTarget.prototype.addEventListener = function(type, listener, opt_capturing) {};
+/**
+ * Remove an event listener from this object.
+ * @param {string} type The event type for which you wish to remove a listener.
+ * @param {shaka.util.FakeEventTarget.ListenerType} listener The callback or
+ *   listener object to remove.
+ * @param {boolean=} opt_capturing Ignored.  FakeEventTargets do not have
+ *   parents, so events neither capture nor bubble.
+ * @override
+ */
+shaka.util.FakeEventTarget.prototype.removeEventListener = function(type, listener, opt_capturing) {};
+/**
+ * Dispatch an event from this object.
+ * @param {!Event} event The event to be dispatched from this object.
+ * @return {boolean} True if the default action was prevented.
+ * @override
+ */
+shaka.util.FakeEventTarget.prototype.dispatchEvent = function(event) {};
 /**
  * Creates a new Error.
  * @param {shaka.util.Error.Category} category
@@ -184,18 +198,6 @@ shaka.util.Error.Code = {
   'NO_INIT_DATA_FOR_OFFLINE': 9007
 };
 /**
- * An interface to standardize how objects are destroyed.
- * @interface
- */
-shaka.util.IDestroyable = function() {};
-/**
- * Destroys the object, releasing all resources and shutting down all
- * operations.  Returns a Promise which is resolved when destruction is
- * complete.  This Promise should never be rejected.
- * @return {!Promise}
- */
-shaka.util.IDestroyable.prototype.destroy = function() {};
-/**
  * @param {string} mimeType
  * @param {shakaExtern.TextParserPlugin} parser
  */
@@ -212,6 +214,45 @@ shaka.media.TextEngine.unregisterParser = function(mimeType) {};
  * @return {TextTrackCue} or null if the parameters were invalid.
  */
 shaka.media.TextEngine.makeCue = function(startTime, endTime, payload) {};
+/**
+ * Creates an InitSegmentReference, which provides the location to an
+ * initialization segment.
+ * @param {function():!Array.<string>} uris
+ *   A function that creates the URIs of the resource containing the segment.
+ * @param {number} startByte The offset from the start of the resource to the
+ *   start of the segment.
+ * @param {?number} endByte The offset from the start of the resource to the
+ *   end of the segment, inclusive. null indicates that the segment extends
+ *   to the end of the resource.
+ * @constructor
+ * @struct
+ */
+shaka.media.InitSegmentReference = function(uris, startByte, endByte) {};
+/**
+ * Creates a SegmentReference, which provides the start time, end time, and
+ * location to a media segment.
+ * @param {number} position The segment's position within a particular Period.
+ *   The following should hold true between any two SegmentReferences from the
+ *   same Period, r1 and r2:
+ *   IF r2.position > r1.position THEN
+ *     [ (r2.startTime > r1.startTime) OR
+ *       (r2.startTime == r1.startTime AND r2.endTime >= r1.endTime) ]
+ * @param {number} startTime The segment's start time in seconds, relative to
+ *   the start of a particular Period.
+ * @param {number} endTime The segment's end time in seconds, relative to
+ *   the start of a particular Period. The segment ends the instant before
+ *   this time, so |endTime| must be strictly greater than |startTime|.
+ * @param {function():!Array.<string>} uris
+ *   A function that creates the URIs of the resource containing the segment.
+ * @param {number} startByte The offset from the start of the resource to the
+ *   start of the segment.
+ * @param {?number} endByte The offset from the start of the resource to the
+ *   end of the segment, inclusive. null indicates that the segment extends
+ *   to the end of the resource.
+ * @constructor
+ * @struct
+ */
+shaka.media.SegmentReference = function(position, startTime, endTime, uris, startByte, endByte) {};
 /**
  * Creates a PresentationTimeline.
  * @param {?number} presentationStartTime The wall-clock time, in seconds,
@@ -400,6 +441,164 @@ shaka.net.NetworkingEngine.prototype.destroy = function() {};
  */
 shaka.net.NetworkingEngine.prototype.request = function(type, request) {};
 /**
+ * Creates a SegmentIndex.
+ * @param {!Array.<!shaka.media.SegmentReference>} references The list of
+ *   SegmentReferences, which must be sorted first by their start times
+ *   (ascending) and second by their end times (ascending), and have
+ *   continuous, increasing positions.
+ * @constructor
+ * @struct
+ * @implements {shaka.util.IDestroyable}
+ */
+shaka.media.SegmentIndex = function(references) {};
+/**
+ * @override
+ */
+shaka.media.SegmentIndex.prototype.destroy = function() {};
+/**
+ * Finds the position of the segment for the given time, in seconds, relative
+ * to the start of a particular Period. Returns the position of the segment
+ * with the largest end time if more than one segment is known for the given
+ * time.
+ * @param {number} time
+ * @return {?number} The position of the segment, or null
+ *   if the position of the segment could not be determined.
+ */
+shaka.media.SegmentIndex.prototype.find = function(time) {};
+/**
+ * Gets the SegmentReference for the segment at the given position.
+ * @param {number} position The position of the segment.
+ * @return {shaka.media.SegmentReference} The SegmentReference, or null if
+ *   no such SegmentReference exists.
+ */
+shaka.media.SegmentIndex.prototype.get = function(position) {};
+/**
+ * Merges the given SegmentReferences.  Supports extending the original
+ * references only.  Will not replace old references or interleave new ones.
+ * @param {!Array.<!shaka.media.SegmentReference>} references The list of
+ *   SegmentReferences, which must be sorted first by their start times
+ *   (ascending) and second by their end times (ascending), and have
+ *   continuous, increasing positions.
+ */
+shaka.media.SegmentIndex.prototype.merge = function(references) {};
+/**
+ * Removes all SegmentReferences that end before the given time.
+ * @param {number} time The time in seconds.
+ */
+shaka.media.SegmentIndex.prototype.evict = function(time) {};
+/**
+ * Registers a manifest parser by file extension.
+ * @param {string} extension The file extension of the manifest.
+ * @param {shakaExtern.ManifestParser.Factory} parserFactory The factory
+ *   used to create parser instances.
+ */
+shaka.media.ManifestParser.registerParserByExtension = function(extension, parserFactory) {};
+/**
+ * Registers a manifest parser by MIME type.
+ * @param {string} mimeType The MIME type of the manifest.
+ * @param {shakaExtern.ManifestParser.Factory} parserFactory The factory
+ *   used to create parser instances.
+ */
+shaka.media.ManifestParser.registerParserByMime = function(mimeType, parserFactory) {};
+/**
+ * Creates a new DASH parser.
+ * @struct
+ * @constructor
+ * @implements {shakaExtern.ManifestParser}
+ */
+shaka.dash.DashParser = function() {};
+/**
+ * @override
+ */
+shaka.dash.DashParser.prototype.configure = function(config) {};
+/**
+ * @override
+ */
+shaka.dash.DashParser.prototype.start = function(uri, networkingEngine, filterPeriod, onError, onEvent) {};
+/**
+ * @override
+ */
+shaka.dash.DashParser.prototype.stop = function() {};
+/**
+ * @namespace
+ * @summary A TextEngine plugin that parses WebVTT files.
+ * @param {ArrayBuffer} data
+ * @param {number} offset
+ * @param {?number} segmentStartTime
+ * @param {?number} segmentEndTime
+ * @param {boolean} useRelativeCueTimestamps
+ * @return {!Array.<!TextTrackCue>}
+ * @throws {shaka.util.Error}
+ */
+shaka.media.VttTextParser = function(data, offset, segmentStartTime, segmentEndTime, useRelativeCueTimestamps) {};
+/**
+ * A proxy to switch between local and remote playback for Chromecast in a way
+ * that is transparent to the app's controls.
+ * @constructor
+ * @struct
+ * @param {!HTMLMediaElement} video The local video element associated with the
+ *   local Player instance.
+ * @param {!shaka.Player} player A local Player instance.
+ * @param {string} receiverAppId The ID of the cast receiver application.
+ * @implements {shaka.util.IDestroyable}
+ * @extends {shaka.util.FakeEventTarget}
+ */
+shaka.cast.CastProxy = function(video, player, receiverAppId) {};
+/**
+ * Destroys the proxy and the underlying local Player.
+ * @override
+ */
+shaka.cast.CastProxy.prototype.destroy = function() {};
+/**
+ * Get a proxy for the video element that delegates to local and remote video
+ * elements as appropriate.
+ * @suppress {invalidCasts} to cast proxy Objects to unrelated types
+ * @return {HTMLMediaElement}
+ */
+shaka.cast.CastProxy.prototype.getVideo = function() {};
+/**
+ * Get a proxy for the Player that delegates to local and remote Player objects
+ * as appropriate.
+ * @suppress {invalidCasts} to cast proxy Objects to unrelated types
+ * @return {shaka.Player}
+ */
+shaka.cast.CastProxy.prototype.getPlayer = function() {};
+/**
+ * @return {boolean} True if the cast API is available and there are receivers.
+ */
+shaka.cast.CastProxy.prototype.canCast = function() {};
+/**
+ * @return {boolean} True if we are currently casting.
+ */
+shaka.cast.CastProxy.prototype.isCasting = function() {};
+/**
+ * @return {string} The name of the Cast receiver device, if isCasting().
+ */
+shaka.cast.CastProxy.prototype.receiverName = function() {};
+/**
+ * @return {!Promise} Resolved when connected to a receiver.  Rejected if the
+ *   connection fails or is canceled by the user.
+ */
+shaka.cast.CastProxy.prototype.cast = function() {};
+/**
+ * Set application-specific data.
+ * @param {Object} appData Application-specific data to relay to the receiver.
+ */
+shaka.cast.CastProxy.prototype.setAppData = function(appData) {};
+/**
+ * Show a dialog where user can choose to disconnect from the cast connection.
+ */
+shaka.cast.CastProxy.prototype.suggestDisconnect = function() {};
+/**
+ * Install all polyfills.
+ */
+shaka.polyfill.installAll = function() {};
+/**
+ * Registers a new polyfill to be installed.
+ * @param {function()} polyfill
+ */
+shaka.polyfill.register = function(polyfill) {};
+/**
  * Creates a new SimpleAbrManager.
  * @constructor
  * @struct
@@ -438,61 +637,6 @@ shaka.abr.SimpleAbrManager.prototype.getBandwidthEstimate = function() {};
  * @override
  */
 shaka.abr.SimpleAbrManager.prototype.setDefaultEstimate = function(estimate) {};
-/**
- * Registers a manifest parser by file extension.
- * @param {string} extension The file extension of the manifest.
- * @param {shakaExtern.ManifestParser.Factory} parserFactory The factory
- *   used to create parser instances.
- */
-shaka.media.ManifestParser.registerParserByExtension = function(extension, parserFactory) {};
-/**
- * Registers a manifest parser by MIME type.
- * @param {string} mimeType The MIME type of the manifest.
- * @param {shakaExtern.ManifestParser.Factory} parserFactory The factory
- *   used to create parser instances.
- */
-shaka.media.ManifestParser.registerParserByMime = function(mimeType, parserFactory) {};
-/**
- * A work-alike for EventTarget.  Only DOM elements may be true EventTargets,
- * but this can be used as a base class to provide event dispatch to non-DOM
- * classes.  Only FakeEvents should be dispatched.
- * @struct
- * @constructor
- * @implements {EventTarget}
- */
-shaka.util.FakeEventTarget = function() {};
-/**
- * These are the listener types defined in the closure extern for EventTarget.
- * @typedef {EventListener|function(!Event):(boolean|undefined)}
- */
-shaka.util.FakeEventTarget.ListenerType;
-/**
- * Add an event listener to this object.
- * @param {string} type The event type to listen for.
- * @param {shaka.util.FakeEventTarget.ListenerType} listener The callback or
- *   listener object to invoke.
- * @param {boolean=} opt_capturing Ignored.  FakeEventTargets do not have
- *   parents, so events neither capture nor bubble.
- * @override
- */
-shaka.util.FakeEventTarget.prototype.addEventListener = function(type, listener, opt_capturing) {};
-/**
- * Remove an event listener from this object.
- * @param {string} type The event type for which you wish to remove a listener.
- * @param {shaka.util.FakeEventTarget.ListenerType} listener The callback or
- *   listener object to remove.
- * @param {boolean=} opt_capturing Ignored.  FakeEventTargets do not have
- *   parents, so events neither capture nor bubble.
- * @override
- */
-shaka.util.FakeEventTarget.prototype.removeEventListener = function(type, listener, opt_capturing) {};
-/**
- * Dispatch an event from this object.
- * @param {!Event} event The event to be dispatched from this object.
- * @return {boolean} True if the default action was prevented.
- * @override
- */
-shaka.util.FakeEventTarget.prototype.dispatchEvent = function(event) {};
 /**
  * Construct a Player.
  * @param {!HTMLMediaElement} video Any existing TextTracks attached to this
@@ -701,51 +845,84 @@ shaka.Player.prototype.addTextTrack = function(uri, language, kind, mime, opt_co
  */
 shaka.Player.prototype.setMaxHardwareResolution = function(width, height) {};
 /**
- * Creates a SegmentIndex.
- * @param {!Array.<!shaka.media.SegmentReference>} references The list of
- *   SegmentReferences, which must be sorted first by their start times
- *   (ascending) and second by their end times (ascending), and have
- *   continuous, increasing positions.
+ * @namespace
+ * @summary A TextEngine plugin that parses TTML files.
+ * @param {ArrayBuffer} data
+ * @param {number} offset
+ * @param {?number} segmentStartTime
+ * @param {?number} segmentEndTime
+ * @param {boolean} useRelativeCueTimestamps Only used by the VTT parser
+ * @return {!Array.<!TextTrackCue>}
+ * @throws {shaka.util.Error}
+ */
+shaka.media.TtmlTextParser = function(data, offset, segmentStartTime, segmentEndTime, useRelativeCueTimestamps) {};
+/**
+ * A receiver to communicate between the Chromecast-hosted player and the
+ * sender application.
  * @constructor
  * @struct
+ * @param {!HTMLMediaElement} video The local video element associated with the
+ *   local Player instance.
+ * @param {!shaka.Player} player A local Player instance.
+ * @param {function(Object)=} opt_appDataCallback A callback to handle
+ *   application-specific data passed from the sender.
  * @implements {shaka.util.IDestroyable}
+ * @extends {shaka.util.FakeEventTarget}
  */
-shaka.media.SegmentIndex = function(references) {};
+shaka.cast.CastReceiver = function(video, player, opt_appDataCallback) {};
 /**
+ * @return {boolean} True if the cast API is available and there are receivers.
+ */
+shaka.cast.CastReceiver.prototype.isConnected = function() {};
+/**
+ * @return {boolean} True if the receiver is not currently doing loading or
+ *   playing anything.
+ */
+shaka.cast.CastReceiver.prototype.isIdle = function() {};
+/**
+ * Destroys the underlying Player, then terminates the cast receiver app.
  * @override
  */
-shaka.media.SegmentIndex.prototype.destroy = function() {};
+shaka.cast.CastReceiver.prototype.destroy = function() {};
 /**
- * Finds the position of the segment for the given time, in seconds, relative
- * to the start of a particular Period. Returns the position of the segment
- * with the largest end time if more than one segment is known for the given
- * time.
- * @param {number} time
- * @return {?number} The position of the segment, or null
- *   if the position of the segment could not be determined.
+ * @namespace
+ * @summary A networking plugin to handle http and https URIs via XHR.
+ * @param {string} uri
+ * @param {shakaExtern.Request} request
+ * @return {!Promise.<shakaExtern.Response>}
  */
-shaka.media.SegmentIndex.prototype.find = function(time) {};
+shaka.net.HttpPlugin = function(uri, request) {};
 /**
- * Gets the SegmentReference for the segment at the given position.
- * @param {number} position The position of the segment.
- * @return {shaka.media.SegmentReference} The SegmentReference, or null if
- *   no such SegmentReference exists.
+ * @namespace
+ * @summary A plugin that handles requests for offline content.
+ * @param {string} uri
+ * @param {shakaExtern.Request} request
+ * @return {!Promise.<shakaExtern.Response>}
  */
-shaka.media.SegmentIndex.prototype.get = function(position) {};
+shaka.offline.OfflineScheme = function(uri, request) {};
 /**
- * Merges the given SegmentReferences.  Supports extending the original
- * references only.  Will not replace old references or interleave new ones.
- * @param {!Array.<!shaka.media.SegmentReference>} references The list of
- *   SegmentReferences, which must be sorted first by their start times
- *   (ascending) and second by their end times (ascending), and have
- *   continuous, increasing positions.
+ * @namespace
+ * @summary Extracts a TTML segment from an MP4 file and invokes the TTML parser
+ *   to parse it.
+ * @param {ArrayBuffer} data
+ * @param {number} offset
+ * @param {?number} segmentStartTime
+ * @param {?number} segmentEndTime
+ * @param {boolean} useRelativeCueTimestamps Only used by the VTT parser
+ * @return {!Array.<!TextTrackCue>}
  */
-shaka.media.SegmentIndex.prototype.merge = function(references) {};
+shaka.media.Mp4TtmlParser = function(data, offset, segmentStartTime, segmentEndTime, useRelativeCueTimestamps) {};
 /**
- * Removes all SegmentReferences that end before the given time.
- * @param {number} time The time in seconds.
+ * @namespace
+ * @summary Extracts a VTT segment from an MP4 file and maps it to cue objects.
+ * @param {ArrayBuffer} data
+ * @param {number} offset
+ * @param {?number} segmentStartTime
+ * @param {?number} segmentEndTime
+ * @param {boolean} useRelativeCueTimestamps Only used by the VTT parser
+ * @return {!Array.<!TextTrackCue>}
  */
-shaka.media.SegmentIndex.prototype.evict = function(time) {};
+shaka.media.Mp4VttParser = function(data, offset, segmentStartTime, segmentEndTime, useRelativeCueTimestamps) {};
 /**
  * This manages persistent offline data including storage, listing, and deleting
  * stored manifests.  Playback of offline manifests are done using Player
@@ -816,63 +993,6 @@ shaka.offline.Storage.prototype.remove = function(content) {};
 shaka.offline.Storage.prototype.list = function() {};
 /**
  * @namespace
- * @summary A networking plugin to handle http and https URIs via XHR.
- * @param {string} uri
- * @param {shakaExtern.Request} request
- * @return {!Promise.<shakaExtern.Response>}
- */
-shaka.net.HttpPlugin = function(uri, request) {};
-/**
- * Install all polyfills.
- */
-shaka.polyfill.installAll = function() {};
-/**
- * Registers a new polyfill to be installed.
- * @param {function()} polyfill
- */
-shaka.polyfill.register = function(polyfill) {};
-/**
- * @namespace
- * @summary A TextEngine plugin that parses TTML files.
- * @param {ArrayBuffer} data
- * @param {number} offset
- * @param {?number} segmentStartTime
- * @param {?number} segmentEndTime
- * @param {boolean} useRelativeCueTimestamps Only used by the VTT parser
- * @return {!Array.<!TextTrackCue>}
- * @throws {shaka.util.Error}
- */
-shaka.media.TtmlTextParser = function(data, offset, segmentStartTime, segmentEndTime, useRelativeCueTimestamps) {};
-/**
- * A receiver to communicate between the Chromecast-hosted player and the
- * sender application.
- * @constructor
- * @struct
- * @param {!HTMLMediaElement} video The local video element associated with the
- *   local Player instance.
- * @param {!shaka.Player} player A local Player instance.
- * @param {function(Object)=} opt_appDataCallback A callback to handle
- *   application-specific data passed from the sender.
- * @implements {shaka.util.IDestroyable}
- * @extends {shaka.util.FakeEventTarget}
- */
-shaka.cast.CastReceiver = function(video, player, opt_appDataCallback) {};
-/**
- * @return {boolean} True if the cast API is available and there are receivers.
- */
-shaka.cast.CastReceiver.prototype.isConnected = function() {};
-/**
- * @return {boolean} True if the receiver is not currently doing loading or
- *   playing anything.
- */
-shaka.cast.CastReceiver.prototype.isIdle = function() {};
-/**
- * Destroys the underlying Player, then terminates the cast receiver app.
- * @override
- */
-shaka.cast.CastReceiver.prototype.destroy = function() {};
-/**
- * @namespace
  * @summary A networking plugin to handle data URIs.
  * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/data_URIs
  * @param {string} uri
@@ -880,123 +1000,3 @@ shaka.cast.CastReceiver.prototype.destroy = function() {};
  * @return {!Promise.<shakaExtern.Response>}
  */
 shaka.net.DataUriPlugin = function(uri, request) {};
-/**
- * Creates a new DASH parser.
- * @struct
- * @constructor
- * @implements {shakaExtern.ManifestParser}
- */
-shaka.dash.DashParser = function() {};
-/**
- * @override
- */
-shaka.dash.DashParser.prototype.configure = function(config) {};
-/**
- * @override
- */
-shaka.dash.DashParser.prototype.start = function(uri, networkingEngine, filterPeriod, onError, onEvent) {};
-/**
- * @override
- */
-shaka.dash.DashParser.prototype.stop = function() {};
-/**
- * @namespace
- * @summary A TextEngine plugin that parses WebVTT files.
- * @param {ArrayBuffer} data
- * @param {number} offset
- * @param {?number} segmentStartTime
- * @param {?number} segmentEndTime
- * @param {boolean} useRelativeCueTimestamps
- * @return {!Array.<!TextTrackCue>}
- * @throws {shaka.util.Error}
- */
-shaka.media.VttTextParser = function(data, offset, segmentStartTime, segmentEndTime, useRelativeCueTimestamps) {};
-/**
- * @namespace
- * @summary Extracts a VTT segment from an MP4 file and maps it to cue objects.
- * @param {ArrayBuffer} data
- * @param {number} offset
- * @param {?number} segmentStartTime
- * @param {?number} segmentEndTime
- * @param {boolean} useRelativeCueTimestamps Only used by the VTT parser
- * @return {!Array.<!TextTrackCue>}
- */
-shaka.media.Mp4VttParser = function(data, offset, segmentStartTime, segmentEndTime, useRelativeCueTimestamps) {};
-/**
- * A proxy to switch between local and remote playback for Chromecast in a way
- * that is transparent to the app's controls.
- * @constructor
- * @struct
- * @param {!HTMLMediaElement} video The local video element associated with the
- *   local Player instance.
- * @param {!shaka.Player} player A local Player instance.
- * @param {string} receiverAppId The ID of the cast receiver application.
- * @implements {shaka.util.IDestroyable}
- * @extends {shaka.util.FakeEventTarget}
- */
-shaka.cast.CastProxy = function(video, player, receiverAppId) {};
-/**
- * Destroys the proxy and the underlying local Player.
- * @override
- */
-shaka.cast.CastProxy.prototype.destroy = function() {};
-/**
- * Get a proxy for the video element that delegates to local and remote video
- * elements as appropriate.
- * @suppress {invalidCasts} to cast proxy Objects to unrelated types
- * @return {HTMLMediaElement}
- */
-shaka.cast.CastProxy.prototype.getVideo = function() {};
-/**
- * Get a proxy for the Player that delegates to local and remote Player objects
- * as appropriate.
- * @suppress {invalidCasts} to cast proxy Objects to unrelated types
- * @return {shaka.Player}
- */
-shaka.cast.CastProxy.prototype.getPlayer = function() {};
-/**
- * @return {boolean} True if the cast API is available and there are receivers.
- */
-shaka.cast.CastProxy.prototype.canCast = function() {};
-/**
- * @return {boolean} True if we are currently casting.
- */
-shaka.cast.CastProxy.prototype.isCasting = function() {};
-/**
- * @return {string} The name of the Cast receiver device, if isCasting().
- */
-shaka.cast.CastProxy.prototype.receiverName = function() {};
-/**
- * @return {!Promise} Resolved when connected to a receiver.  Rejected if the
- *   connection fails or is canceled by the user.
- */
-shaka.cast.CastProxy.prototype.cast = function() {};
-/**
- * Set application-specific data.
- * @param {Object} appData Application-specific data to relay to the receiver.
- */
-shaka.cast.CastProxy.prototype.setAppData = function(appData) {};
-/**
- * Show a dialog where user can choose to disconnect from the cast connection.
- */
-shaka.cast.CastProxy.prototype.suggestDisconnect = function() {};
-/**
- * @namespace
- * @summary Extracts a TTML segment from an MP4 file and invokes the TTML parser
- *   to parse it.
- * @param {ArrayBuffer} data
- * @param {number} offset
- * @param {?number} segmentStartTime
- * @param {?number} segmentEndTime
- * @param {boolean} useRelativeCueTimestamps Only used by the VTT parser
- * @return {!Array.<!TextTrackCue>}
- */
-shaka.media.Mp4TtmlParser = function(data, offset, segmentStartTime, segmentEndTime, useRelativeCueTimestamps) {};
-/**
- * @namespace
- * @summary A plugin that handles requests for offline content.
- * @param {string} uri
- * @param {shakaExtern.Request} request
- * @return {!Promise.<shakaExtern.Response>}
- */
-shaka.offline.OfflineScheme = function(uri, request) {};
