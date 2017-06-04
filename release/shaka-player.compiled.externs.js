@@ -540,11 +540,6 @@ shaka.Player.isBrowserSupported = function() {};
  */
 shaka.Player.probeSupport = function() {};
 /**
- * Returns player's video element.
- * @return {HTMLMediaElement}
- */
-shaka.Player.prototype.getVideo = function() {};
-/**
  * Load a manifest.
  * @param {string} manifestUri
  * @param {number=} opt_startTime Optional start time, in seconds, to begin
