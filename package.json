@@ -1,15 +1,8 @@
 {
   "name": "shaka-player",
   "description": "DASH/EME video player library",
-  "version": "2.3.3",
-  "homepage": "https://github.com/google/shaka-player",
-  "author": "Google",
-  "maintainers": [
-    {
-      "name": "Joey Parrish",
-      "email": "joeyparrish@google.com"
-    }
-  ],
+  "version": "2.3.3-hola-1",
+  "homepage": "https://github.com/hola/shaka-player",
   "devDependencies": {
     "array-includes": "~3.0.3",
     "babel-core": "^6.26.0",
@@ -46,13 +39,14 @@
   "main": "dist/shaka-player.compiled.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/google/shaka-player.git"
+    "url": "https://github.com/hola/shaka-player.git"
   },
   "bugs": {
-    "url": "https://github.com/google/shaka-player/issues"
+    "url": "https://github.com/hola/shaka-player/issues"
   },
   "license": "Apache-2.0",
   "scripts": {
     "prepublish": "in-publish && python ./build/checkversion.py && python ./build/all.py --force || not-in-publish"
+    "copy_release_files": "mkdir -p release && ./build/all.py --force && cp dist/* release/"
   }
 }
