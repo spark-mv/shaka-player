@@ -83,6 +83,8 @@ See:
  * dist/shaka-player.compiled.js (compiled bundle)
  * dist/shaka-player.compiled.externs.js (generated externs)
 
+**to generate debug builds, do `./build/all.py --debug`**
+
 In order to build, you simply need python v2.7 (for the build scripts) and
 JRE 7+ (for the compiler). Just run `./build/all.py` and look for the output
 in `dist/shaka-player.compiled.js`. The output can be included directly in a
