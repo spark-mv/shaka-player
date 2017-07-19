@@ -1,0 +1,20 @@
+<html>
+<head>
+  <script src="third_party/closure/goog/base.js"></script>
+  <script src="dist/deps.js"></script>
+  <script src="shaka-player.uncompiled.js"></script>
+  <script async cross-origin=anonymous
+    src=//player.h-cdn.com/loader.js?customer=demo></script>
+</head>
+<body>
+  <div><h1>Shaka/v2.1.1 playing dash/mpd with Hola CDN</h1></div>
+  <video id=shaka-video width=640 height=360 controls autoplay></video>
+  <script>
+    (function(){
+        var shaka_player = new shaka.Player(
+            document.querySelector('#shaka-video'));
+        shaka_player.load('//player.h-cdn.org/static/dash/mako/manifest.mpd');
+    })();
+  </script>
+</body>
+</html>
