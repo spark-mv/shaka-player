@@ -46,7 +46,7 @@
   },
   "license": "Apache-2.0",
   "scripts": {
-    "prepublish": "in-publish && python ./build/checkversion.py && python ./build/all.py --force || not-in-publish"
+    "prepublish": "in-publish && python ./build/checkversion.py && python ./build/all.py --force || not-in-publish",
     "copy_release_files": "mkdir -p release && ./build/all.py --force && cp dist/* release/"
   }
 }
