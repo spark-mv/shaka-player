@@ -94,6 +94,18 @@ shaka.media.InitSegmentReference.prototype.getEndByte = function() {};
  */
 shaka.media.SegmentReference = function(position, startTime, endTime, uris, startByte, endByte) {};
 /**
+   * @type {function():!Array.<string>}
+   */
+shaka.media.SegmentReference.prototype.getUris;
+/**
+   * @const {number}
+   */
+shaka.media.SegmentReference.prototype.startByte;
+/**
+   * @const {?number}
+   */
+shaka.media.SegmentReference.prototype.endByte;
+/**
  * Returns the segment's position within a particular Period.
  * @return {number} The segment's position.
  */
