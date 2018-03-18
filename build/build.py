@@ -63,6 +63,7 @@ common_closure_opts = [
      shakaBuildHelpers.cygwin_safe_path(shakaBuildHelpers.get_source_base())),
 
     '--generate_exports',
+    '--export_local_property_definitions',
 ]
 common_closure_defines = [
     '-D', 'COMPILED=true',
